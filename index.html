@@ -16,7 +16,6 @@
             border: 1px solid #334155;
             transition: all 0.3s ease;
         }
-        /* Colori Tabella */
         .cell-base { background-color: #0f172a; border: 1px solid #1e293b; }
         .rune-header { background-color: #1e293b; color: #94a3b8; }
         .rune-active-cell { background-color: #064e3b !important; color: #34d399 !important; border: 2px solid #10b981 !important; }
@@ -41,11 +40,18 @@
             70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-
-        /* Modal styling */
         .modal-overlay {
             background-color: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(8px);
+        }
+        .badge-bonus {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: #f59e0b;
+            color: #451a03;
+            font-weight: 900;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -60,9 +66,7 @@
                 </h1>
                 <p class="text-xs text-slate-500 uppercase tracking-widest font-bold">Lumineth Battle Manager</p>
             </div>
-            <div id="round-indicator" class="flex gap-2 bg-slate-900 p-1 rounded-lg border border-slate-800">
-                <!-- Round buttons generated here -->
-            </div>
+            <div id="round-indicator" class="flex gap-2 bg-slate-900 p-1 rounded-lg border border-slate-800"></div>
         </div>
 
         <!-- SEZIONE SETUP -->
@@ -70,11 +74,9 @@
             <div class="rune-card p-6 rounded-2xl shadow-2xl">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-white uppercase tracking-tight">Esercito</h2>
-                    <span class="text-xs text-slate-400">Seleziona le unità per abilitare i bonus passivi</span>
+                    <span class="text-xs text-slate-400">Seleziona eroi e unità per attivare i bonus passivi</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="unit-grid">
-                    <!-- Units generated here -->
-                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="unit-grid"></div>
                 <div class="mt-8 flex justify-center">
                     <button onclick="startBattle()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-12 rounded-xl transition-all shadow-lg shadow-blue-900/20">
                         CONFIGURA SCRITTURA
@@ -110,33 +112,26 @@
                             <th class="p-4 text-center cursor-pointer hover:bg-slate-700 transition-all border-r border-slate-700" onclick="previewRune('Varinor')">
                                 <div class="mb-1 opacity-80" id="icon-Varinor"></div>
                                 <div class="font-bold">Varinor</div>
-                                <div class="text-[9px] opacity-50 uppercase">Strength</div>
                             </th>
                             <th class="p-4 text-center cursor-pointer hover:bg-slate-700 transition-all border-r border-slate-700" onclick="previewRune('Alaithi')">
                                 <div class="mb-1 opacity-80" id="icon-Alaithi"></div>
                                 <div class="font-bold text-emerald-400">Alaithi</div>
-                                <div class="text-[9px] opacity-50 uppercase">Mountain</div>
                             </th>
                             <th class="p-4 text-center cursor-pointer hover:bg-slate-700 transition-all border-r border-slate-700" onclick="previewRune('Ydriliqi')">
                                 <div class="mb-1 opacity-80" id="icon-Ydriliqi"></div>
                                 <div class="font-bold">Ydriliqi</div>
-                                <div class="text-[9px] opacity-50 uppercase">River</div>
                             </th>
                             <th class="p-4 text-center cursor-pointer hover:bg-slate-700 transition-all border-r border-slate-700" onclick="previewRune('Oreali')">
                                 <div class="mb-1 opacity-80" id="icon-Oreali"></div>
                                 <div class="font-bold">Oreali</div>
-                                <div class="text-[9px] opacity-50 uppercase">Wind</div>
                             </th>
                             <th class="p-4 text-center cursor-pointer hover:bg-slate-700 transition-all" onclick="previewRune('Thalari')">
                                 <div class="mb-1 opacity-80" id="icon-Thalari"></div>
                                 <div class="font-bold">Thalari</div>
-                                <div class="text-[9px] opacity-50 uppercase">Zenith</div>
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="matrix-body">
-                        <!-- Generato dinamicamente -->
-                    </tbody>
+                    <tbody id="matrix-body"></tbody>
                 </table>
             </div>
 
@@ -146,11 +141,9 @@
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-2 text-blue-400 font-bold uppercase text-xs tracking-widest">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Unit Buffs & Warscrolls
+                        Warscroll Bonus (Active)
                     </div>
-                    <div id="buff-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <!-- Buffs -->
-                    </div>
+                    <div id="buff-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                 </div>
 
                 <!-- Sezione Azioni Eroe -->
@@ -159,9 +152,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                         Azioni Eroe
                     </div>
-                    <div id="hero-actions" class="flex flex-col gap-2">
-                        <!-- Buttons -->
-                    </div>
+                    <div id="hero-actions" class="flex flex-col gap-2"></div>
                 </div>
             </div>
         </div>
@@ -169,17 +160,14 @@
         <!-- MODALE SELEZIONE RUNE -->
         <div id="rune-modal" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                <h3 id="modal-title" class="text-xl font-bold text-white mb-4 uppercase tracking-tight">Seleziona Runa</h3>
-                <div class="grid grid-cols-1 gap-3" id="modal-options">
-                    <!-- Opzioni generate qui -->
-                </div>
+                <h3 id="modal-title" class="text-xl font-bold text-white mb-4 uppercase tracking-tight"></h3>
+                <div class="grid grid-cols-1 gap-3" id="modal-options"></div>
                 <button onclick="closeModal()" class="mt-6 w-full py-2 text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-white transition-all">Annulla</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ICONE SVG DELLE RUNE
         const ICONS = {
             Varinor: `<svg viewBox="0 0 24 24" class="w-6 h-6 mx-auto fill-current"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5zM12 7l-4 2.5v5L12 17l4-2.5v-5L12 7z"/></svg>`,
             Alaithi: `<svg viewBox="0 0 24 24" class="w-6 h-6 mx-auto fill-current"><path d="M12 3L2 21h20L12 3zm0 4.5L18.5 19H5.5L12 7.5zM12 11l-3 4.5h6L12 11z"/></svg>`,
@@ -189,16 +177,15 @@
         };
 
         const UNITS_DB = [
-            { id: 'teclis', name: 'Archmage Teclis', skill: 'Discs: Aggiunge 1 runa extra (R2+).' },
-            { id: 'lyrior', name: 'Lyrior Uthralle', skill: 'Champion: +1 Varinor per Vanari vicini.' },
-            { id: 'calligrave', name: 'Scinari Calligrave', skill: 'Realmscribe: Sostituisci una runa.' },
-            { id: 'avalenor', name: 'Avalenor', skill: 'Call: +1 Alaithi per Alarith vicini.' },
-            { id: 'mt_spirit', name: 'Spirit of Mountain', skill: 'Landslide: +1 Atk per ogni Alaithi.' },
-            { id: 'bladelords', name: 'Vanari Bladelords', skill: 'Masters: +1 Rend per ogni Varinor.' },
+            { id: 'teclis', name: 'Archmage Teclis', skill: 'Discs: +1 Runa Extra (R2+).' },
+            { id: 'lyrior', name: 'Lyrior Uthralle', skill: 'Champion: +1 Varinor passivo.' },
+            { id: 'avalenor', name: 'Avalenor', skill: 'Guardian: +1 Alaithi passiva.' },
+            { id: 'sevireth', name: 'Sevireth', skill: 'Winds: +1 Oreali passiva.' },
+            { id: 'calligrave', name: 'Scinari Calligrave', skill: 'Realmscribe: Sostituisci rune.' },
+            { id: 'bladelords', name: 'Vanari Bladelords', skill: 'Masters: +1 Rend per Varinor.' },
             { id: 'stoneguard', name: 'Alarith Stoneguard', skill: 'Fortitude: Save 3+ se Alaithi >= 2.' },
             { id: 'windchargers', name: 'Hurakan Windchargers', skill: 'Range: +6" archi se Oreali >= 2.' },
-            { id: 'riverblades', name: 'Ydrilan Riverblades', skill: 'Teleport: se Ydriliqi attiva.' },
-            { id: 'sevireth', name: 'Sevireth', skill: 'Winds: +1 Oreali per Hurakan.' }
+            { id: 'riverblades', name: 'Ydrilan Riverblades', skill: 'Teleport: se Ydriliqi attiva.' }
         ];
 
         const RUNES = ['Varinor', 'Alaithi', 'Ydriliqi', 'Oreali', 'Thalari'];
@@ -238,7 +225,7 @@
 
             const unitGrid = document.getElementById('unit-grid');
             unitGrid.innerHTML = UNITS_DB.map(u => `
-                <div onclick="toggleUnit('${u.id}')" id="u-${u.id}" class="rune-card p-3 rounded-xl cursor-pointer hover:border-blue-500 transition-all">
+                <div onclick="toggleUnit('${u.id}')" id="u-${u.id}" class="rune-card p-3 rounded-xl cursor-pointer hover:border-blue-500 transition-all border-2 border-transparent">
                     <div class="font-bold text-xs text-slate-200">${u.name}</div>
                     <div class="text-[9px] text-slate-500 mt-1">${u.skill}</div>
                 </div>
@@ -258,9 +245,9 @@
             UNITS_DB.forEach(u => {
                 const el = document.getElementById(`u-${u.id}`);
                 if(state.selectedUnits.includes(u.id)) {
-                    el.classList.add('border-blue-500', 'bg-blue-900/10');
+                    el.classList.add('border-blue-500', 'bg-blue-900/20');
                 } else {
-                    el.classList.remove('border-blue-500', 'bg-blue-900/10');
+                    el.classList.remove('border-blue-500', 'bg-blue-900/20');
                 }
             });
         }
@@ -310,18 +297,24 @@
             }
         }
 
-        function getActiveRunes() {
-            const active = [];
+        function getRuneCount(runeName) {
+            // Conta rune lockate fino al round corrente
+            let count = 0;
             for(let i=1; i<=state.currentRound; i++) {
-                if(state.lockedRunes[i]) active.push(state.lockedRunes[i]);
+                if(state.lockedRunes[i] === runeName) count++;
             }
-            if(state.teclisRune) active.push(state.teclisRune);
-            return active;
+            // Aggiungi Teclis
+            if(state.teclisRune === runeName) count++;
+            // Aggiungi Bonus Passivi Eroi
+            if(runeName === 'Varinor' && state.selectedUnits.includes('lyrior')) count++;
+            if(runeName === 'Alaithi' && state.selectedUnits.includes('avalenor')) count++;
+            if(runeName === 'Oreali' && state.selectedUnits.includes('sevireth')) count++;
+            
+            return count;
         }
 
         function updateBattleUI() {
             const matrix = document.getElementById('matrix-body');
-            const activeRunes = getActiveRunes();
             const displayedRune = state.pendingRune || state.lockedRunes[state.currentRound];
 
             document.getElementById('pending-selection').innerText = displayedRune || "Seleziona una runa";
@@ -340,14 +333,21 @@
 
             // SYNERGY ROWS
             RUNES.forEach(rowRune => {
-                const isRowActive = activeRunes.includes(rowRune);
-                const count = activeRunes.filter(r => r === rowRune).length;
+                const count = getRuneCount(rowRune);
+                const isRowActive = count > 0;
                 
+                // Cerca se c'è un bonus passivo per questa riga
+                let bonusLabel = "";
+                if(rowRune === 'Varinor' && state.selectedUnits.includes('lyrior')) bonusLabel = `<span class="badge-bonus mt-1">Lyrior +1</span>`;
+                if(rowRune === 'Alaithi' && state.selectedUnits.includes('avalenor')) bonusLabel = `<span class="badge-bonus mt-1">Avalenor +1</span>`;
+                if(rowRune === 'Oreali' && state.selectedUnits.includes('sevireth')) bonusLabel = `<span class="badge-bonus mt-1">Sevireth +1</span>`;
+
                 html += `<tr class="border-b border-slate-800">
-                    <td class="p-4 bg-slate-900/80 font-bold border-r border-slate-800 flex flex-col items-center">
+                    <td class="p-4 bg-slate-900/80 font-bold border-r border-slate-800 flex flex-col items-center min-w-[80px]">
                         <div class="w-4 h-4 mb-1 ${isRowActive ? 'text-blue-400' : 'text-slate-700'}">${ICONS[rowRune]}</div>
                         <span class="${isRowActive ? 'text-white' : 'text-slate-600'} text-[10px]">${rowRune}</span>
-                        ${count > 1 ? `<span class="text-[8px] text-blue-400 font-black">x${count}</span>` : ''}
+                        <span class="text-[9px] font-black ${isRowActive ? 'text-blue-400' : 'text-slate-700'}">Tot: ${count}</span>
+                        ${bonusLabel}
                     </td>`;
                 
                 RUNES.forEach(colRune => {
@@ -359,13 +359,13 @@
                     else if (isRowActive && synergy) cellClass += "synergy-ready opacity-90";
                     else cellClass += "text-slate-700 opacity-40";
 
-                    // Zenith Logic (Thalari)
+                    // Zenith Logic
                     if (colRune === 'Thalari') {
-                        const uniqueCount = [...new Set(activeRunes)].length;
+                        let activeUnique = RUNES.filter(r => getRuneCount(r) > 0).length;
                         if (rowRune === 'Varinor') {
                              html += `<td rowspan="4" class="p-4 cell-base text-center border-l border-slate-800 ${isColDisplayed ? 'rune-active-cell' : 'text-slate-700 opacity-40'}">
                                 <div class="font-bold text-xs">+4" Move & 5+ Crits</div>
-                                <div class="text-[9px] mt-2 opacity-60">Richiede 4 rune uniche<br>(Attuali: <span class="text-blue-400 font-bold">${uniqueCount}/4</span>)</div>
+                                <div class="text-[9px] mt-2 opacity-60">Richiede 4 rune uniche<br>(Attuali: <span class="text-blue-400 font-bold">${activeUnique}/4</span>)</div>
                              </td>`;
                              return;
                         }
@@ -382,13 +382,11 @@
             renderUnitBuffs();
         }
 
-        // MODALE GESTIONE
         function openRuneModal(title, callback, filter = RUNES) {
             const modal = document.getElementById('rune-modal');
-            const titleEl = document.getElementById('modal-title');
             const optionsEl = document.getElementById('modal-options');
+            document.getElementById('modal-title').innerText = title;
             
-            titleEl.innerText = title;
             optionsEl.innerHTML = filter.map(r => `
                 <button onclick="handleModalSelect('${r}')" class="flex items-center gap-4 bg-slate-800 border border-slate-700 p-3 rounded-xl hover:bg-slate-700 hover:border-blue-500 transition-all text-left w-full">
                     <div class="w-6 h-6 text-blue-400">${ICONS[r]}</div>
@@ -402,7 +400,7 @@
 
         function handleModalSelect(rune) {
             const cb = state.modalCallback;
-            closeModal(); // Chiudi prima di eseguire il callback
+            closeModal();
             if(cb) cb(rune);
         }
 
@@ -438,68 +436,52 @@
         }
 
         function actionCalligrave() {
-            // Ottieni le rune attualmente lockate
             const lockedEntries = Object.entries(state.lockedRunes).filter(([rd, r]) => r !== null);
-            
-            if(lockedEntries.length === 0) {
-                alert("Nessuna runa bloccata da sostituire!");
-                return;
-            }
-
-            // Primo step: scegli quale runa vuoi togliere
+            if(lockedEntries.length === 0) return;
             const uniqueLocked = [...new Set(lockedEntries.map(e => e[1]))];
             
             setTimeout(() => {
-                openRuneModal("Quale runa vuoi sostituire?", (oldRune) => {
-                    // Secondo step: scegli con cosa sostituirla (ritardo per evitare glitch modale)
+                openRuneModal("Runa da sostituire?", (oldRune) => {
                     setTimeout(() => {
                         openRuneModal(`Sostituisci ${oldRune} con:`, (newRune) => {
                             for(let rd in state.lockedRunes) {
-                                if(state.lockedRunes[rd] === oldRune) {
-                                    state.lockedRunes[rd] = newRune;
-                                }
+                                if(state.lockedRunes[rd] === oldRune) state.lockedRunes[rd] = newRune;
                             }
                             updateBattleUI();
                         });
-                    }, 100);
+                    }, 150);
                 }, uniqueLocked);
             }, 50);
         }
 
         function renderUnitBuffs() {
             const container = document.getElementById('buff-container');
-            const active = getActiveRunes();
-            const current = state.lockedRunes[state.currentRound];
-            
+            const currentRune = state.lockedRunes[state.currentRound];
             const buffs = [];
             
-            const count = (r) => {
-                let c = active.filter(x => x === r).length;
-                if(r === 'Varinor' && state.selectedUnits.includes('lyrior')) c++;
-                if(r === 'Alaithi' && state.selectedUnits.includes('avalenor')) c++;
-                if(r === 'Oreali' && state.selectedUnits.includes('sevireth')) c++;
-                return c;
-            };
-
             if(state.selectedUnits.includes('bladelords')) {
-                buffs.push({ unit: 'Bladelords', text: `+${count('Varinor')} Rend (Masters of Combat)` });
+                const count = getRuneCount('Varinor');
+                buffs.push({ unit: 'Bladelords', text: `+${count} Rend (Active)`, active: count > 0 });
             }
-            if(state.selectedUnits.includes('stoneguard') && count('Alaithi') >= 2) {
-                buffs.push({ unit: 'Stoneguard', text: `Save 3+ (Fortitude of Earth)` });
+            if(state.selectedUnits.includes('stoneguard')) {
+                const count = getRuneCount('Alaithi');
+                buffs.push({ unit: 'Stoneguard', text: `Save 3+ (Alaithi Tot: ${count}/2)`, active: count >= 2 });
             }
-            if(state.selectedUnits.includes('windchargers') && count('Oreali') >= 2) {
-                buffs.push({ unit: 'Windchargers', text: `+6" Range (Windborne)` });
+            if(state.selectedUnits.includes('windchargers')) {
+                const count = getRuneCount('Oreali');
+                buffs.push({ unit: 'Windchargers', text: `+6" Range (Oreali Tot: ${count}/2)`, active: count >= 2 });
             }
-            if(state.selectedUnits.includes('riverblades') && (current === 'Ydriliqi' || state.teclisRune === 'Ydriliqi')) {
-                buffs.push({ unit: 'Riverblades', text: `Special Deployment attivo` });
+            if(state.selectedUnits.includes('riverblades')) {
+                const active = (currentRune === 'Ydriliqi' || state.teclisRune === 'Ydriliqi');
+                buffs.push({ unit: 'Riverblades', text: `Teleport special deployment`, active: active });
             }
 
             container.innerHTML = buffs.length ? buffs.map(b => `
-                <div class="bg-slate-900 border-l-2 border-blue-500 p-2 rounded shadow-lg">
-                    <div class="text-[9px] font-black text-blue-400 uppercase">${b.unit}</div>
-                    <div class="text-[10px] text-white">${b.text}</div>
+                <div class="${b.active ? 'bg-emerald-900/30 border-emerald-500' : 'bg-slate-900 border-slate-700 opacity-50'} border-l-2 p-2 rounded shadow-lg transition-all">
+                    <div class="text-[9px] font-black ${b.active ? 'text-emerald-400' : 'text-slate-500'} uppercase">${b.unit}</div>
+                    <div class="text-[10px] ${b.active ? 'text-white font-bold' : 'text-slate-600'}">${b.text}</div>
                 </div>
-            `).join('') : '<div class="text-slate-600 italic text-[10px]">Nessun buff warscroll attivo.</div>';
+            `).join('') : '<div class="text-slate-600 italic text-[10px]">Seleziona unità nel setup.</div>';
         }
 
         window.onload = init;
