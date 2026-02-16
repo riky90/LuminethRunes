@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumineth Rune Manager</title>
+    <!-- Tailwind CSS per lo stile -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React e Babel per far girare il codice nel browser senza build -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
+        .rune-card:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Componente Icona generico per Lucide
+        const Icon = ({ name, className }) => {
+            const [iconHtml, setIconHtml] = useState('');
+            useEffect(() => {
+                if (window.lucide) {
+                    const icon = window.lucide.icons[name];
+                    if (icon) {
+                        const svg = icon.toSvg({ class: className });
+                        setIconHtml(svg);
+                    }
+                }
+            }, [name, className]);
+            return <span dangerouslySetInnerHTML={{ __html: iconHtml }} />;
+        };
+
+        const RUNE_DATA = [
+            {
+                id: 'varinor',
+                name: 'Varinor',
+                title: 'Runa della Forza',
+                icon: 'Zap',
+                iconColor: 'text-yellow-400',
+                baseEffect: 'Scegli fino a 2 unità: aggiungi 1 ai tiri per Correre (Run) e Caricare (Charge).',
+                enhancedConditions: [
+                    { unit: 'ydriliqi', unitName: 'Ydriliqi Attiva', text: 'Aggiungi 1 ai tiri per Ferire (Wound) in mischia.' },
+                    { unit: 'oreali', unitName: 'Oreali Attiva', text: 'Può Tirare e/o Caricare dopo una Ritirata (Retreat).' }
+                ],
+                bgClass: 'bg-yellow-900/20',
+                borderColor: 'border-yellow-500/50'
+            },
+            {
+                id: 'entari',
+                name: 'Entari',
+                title: 'Runa della Guarigione',
+                icon: 'Shield',
+                iconColor: 'text-blue-400',
+                baseEffect: 'Cura fino a D3 ferite a un\'unità alla fine di ogni fase.',
+                enhancedConditions: [
+                    { unit: 'teclis', unitName: 'Teclis', text: 'Cura D6 ferite invece di D3.' },
+                    { unit: 'calligrave', unitName: 'Calligrave', text: 'Può curare un\'unità aggiuntiva entro 12".' }
+                ],
+                bgClass: 'bg-blue-900/20',
+                borderColor: 'border-blue-500/50'
+            },
+            {
+                id: 'ydriliqi',
+                name: 'Ydriliqi',
+                title: 'Runa del Fiume',
+                icon: 'Droplets',
+                iconColor: 'text-cyan-400',
+                baseEffect: 'Unità nemiche entro 3" da un\'unità bersaglio: -1 ai tiri per Colpire.',
+                enhancedConditions: [
+                    { unit: 'sevireth', unitName: 'Sevireth', text: 'L\'unità può muoversi di 3" extra dopo il tiro.' }
+                ],
+                bgClass: 'bg-cyan-900/20',
+                borderColor: 'border-cyan-500/50'
+            },
+            {
+                id: 'oreali',
+                name: 'Oreali',
+                title: 'Runa del Vento',
+                icon: 'Wind',
+                iconColor: 'text-emerald-400',
+                baseEffect: 'Bersagli difficili da colpire: -1 ai tiri per essere colpiti a distanza.',
+                enhancedConditions: [
+                    { unit: 'avalenor', unitName: 'Avalenor', text: 'I nemici entro 12" non possono ricevere comandi.' }
+                ],
+                bgClass: 'bg-emerald-900/20',
+                borderColor: 'border-emerald-500/50'
+            }
+        ];
+
+        const SPECIAL_UNITS = [
+            { id: 'teclis', name: 'Archmage Teclis', icon: 'Sparkles', color: 'bg-blue-600' },
+            { id: 'calligrave', name: 'Scinari Calligrave', icon: 'Scroll', color: 'bg-cyan-600' },
+            { id: 'sevireth', name: 'Sevireth', icon: 'Wind', color: 'bg-emerald-600' },
+            { id: 'avalenor', name: 'Avalenor', icon: 'Mountain', color: 'bg-amber-700' }
+        ];
+
+        function App() {
+            const [selectedUnits, setSelectedUnits] = useState([]);
+            const [selectedRune, setSelectedRune] = useState(null);
+            const [confirmedRune, setConfirmedRune] = useState(null);
+            const [view, setView] = useState('setup');
+
+            const toggleUnit = (id) => {
+                setSelectedUnits(prev => 
+                    prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
+                );
+            };
+
+            const handleConfirmRune = () => {
+                setConfirmedRune(selectedRune);
+            };
+
+            return (
+                <div className="min-h-screen text-slate-100 p-4">
+                    <div className="max-w-4xl mx-auto pb-20">
+                        <header className="text-center mb-8 pt-4">
+                            <h1 className="text-3xl font-black tracking-tight text-white mb-2 uppercase">
+                                Lumineth <span className="text-cyan-400">Rune Helper</span>
+                            </h1>
+                            <div className="h-1 w-20 bg-cyan-500 mx-auto rounded-full"></div>
+                        </header>
+
+                        <div className="flex p-1 bg-slate-800/50 rounded-xl border border-white/5 mb-8">
+                            <button 
+                                onClick={() => setView('setup')}
+                                className={`flex-1 py-3 rounded-lg font-bold transition-all ${view === 'setup' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+                            >
+                                1. EROI
+                            </button>
+                            <button 
+                                onClick={() => setView('runes')}
+                                className={`flex-1 py-3 rounded-lg font-bold transition-all ${view === 'runes' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+                            >
+                                2. RUNE
+                            </button>
+                        </div>
+
+                        {view === 'setup' ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {SPECIAL_UNITS.map(unit => (
+                                    <div 
+                                        key={unit.id}
+                                        onClick={() => toggleUnit(unit.id)}
+                                        className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${selectedUnits.includes(unit.id) ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50'}`}
+                                    >
+                                        <div className={`p-3 rounded-xl mr-4 ${selectedUnits.includes(unit.id) ? unit.color : 'bg-slate-700'}`}>
+                                            <Icon name={unit.icon} className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div className="flex-1 font-bold text-lg">{unit.name}</div>
+                                        {selectedUnits.includes(unit.id) && <Icon name="CheckCircle2" className="w-6 h-6 text-cyan-400" />}
+                                    </div>
+                                ))}
+                                <button 
+                                    onClick={() => setView('runes')}
+                                    className="sm:col-span-2 mt-4 bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg"
+                                >
+                                    Seleziona Runa →
+                                </button>
+                            </div>
+                        ) : (
+                            <div>
+                                {confirmedRune ? (
+                                    <div className="bg-slate-800 border-2 border-cyan-500 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
+                                        <div className="flex justify-center mb-4">
+                                            <Icon name={confirmedRune.icon} className={`w-16 h-16 ${confirmedRune.iconColor}`} />
+                                        </div>
+                                        <h3 className="text-3xl font-black uppercase">{confirmedRune.name}</h3>
+                                        <p className="text-slate-400 italic mb-6">{confirmedRune.title}</p>
+                                        
+                                        <div className="bg-slate-900/50 p-4 rounded-xl text-left border border-white/5 mb-4">
+                                            <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Effetto Base</div>
+                                            <p className="text-sm">{confirmedRune.baseEffect}</p>
+                                        </div>
+
+                                        {confirmedRune.enhancedConditions.some(c => selectedUnits.includes(c.unit)) && (
+                                            <div className="bg-amber-500/10 p-4 rounded-xl text-left border border-amber-500/30">
+                                                <div className="text-[10px] font-bold text-amber-500 uppercase mb-2">Potenziamenti Attivi</div>
+                                                {confirmedRune.enhancedConditions.filter(c => selectedUnits.includes(c.unit)).map((c, i) => (
+                                                    <div key={i} className="flex gap-2 text-sm text-amber-100 mb-1">
+                                                        <Icon name="Star" className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0" />
+                                                        <span><strong>{c.unitName}:</strong> {c.text}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <button 
+                                            onClick={() => setConfirmedRune(null)}
+                                            className="mt-8 text-slate-500 hover:text-red-400 text-xs font-bold uppercase"
+                                        >
+                                            Cambia Runa
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {RUNE_DATA.map(rune => {
+                                            const isSelected = selectedRune?.id === rune.id;
+                                            return (
+                                                <div 
+                                                    key={rune.id}
+                                                    onClick={() => setSelectedRune(rune)}
+                                                    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? `${rune.borderColor} ${rune.bgClass}` : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'}`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <Icon name={rune.icon} className={`w-10 h-10 ${rune.iconColor}`} />
+                                                        {isSelected && <Icon name="CheckCircle2" className="w-5 h-5 text-cyan-400" />}
+                                                    </div>
+                                                    <h3 className="text-xl font-black uppercase">{rune.name}</h3>
+                                                    <p className="text-xs text-slate-500 mb-4 tracking-tighter uppercase">{rune.title}</p>
+                                                    <p className="text-sm text-slate-300 mb-4">{rune.baseEffect}</p>
+                                                    
+                                                    <div className="space-y-2 border-t border-white/5 pt-3">
+                                                        {rune.enhancedConditions.map((c, i) => {
+                                                            const active = selectedUnits.includes(c.unit);
+                                                            return (
+                                                                <div key={i} className={`text-[11px] flex items-center gap-2 ${active ? 'text-amber-400' : 'text-slate-600'}`}>
+                                                                    <Icon name="Star" className={`w-3 h-3 ${active ? 'fill-amber-400' : ''}`} />
+                                                                    <span>{c.unitName}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {!confirmedRune && selectedRune && (
+                        <div className="fixed bottom-6 left-4 right-4 max-w-md mx-auto z-50">
+                            <button 
+                                onClick={handleConfirmRune}
+                                className="w-full bg-cyan-600 p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-cyan-400"
+                            >
+                                <span className="font-black text-white uppercase tracking-widest">Attiva {selectedRune.name}</span>
+                                <Icon name="Zap" className="w-6 h-6 text-white" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
