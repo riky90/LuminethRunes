@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumineth Rune Manager</title>
+    <title>Lumineth Battle Scripture - Grid View</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & Babel -->
@@ -13,288 +13,179 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
+        
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #0f172a; 
+            background-color: #020617; 
+            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
             margin: 0;
-            overflow-x: hidden;
         }
-        .rune-card:active { transform: scale(0.98); }
-        /* Animazione semplice per il caricamento */
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .rune-font { font-family: 'Cinzel', serif; }
+        
+        .scripture-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .scripture-grid { grid-template-columns: 1fr; }
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .active-rune-border {
+            border-color: #22d3ee;
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.15);
+        }
+
+        .rune-symbol-container {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+        }
+
+        .enhanced-active {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
     </style>
 </head>
 <body>
-    <div id="root">
-        <!-- Messaggio di caricamento visibile solo se JS fallisce -->
-        <div class="flex items-center justify-center min-h-screen text-slate-400">
-            Caricamento Battle Scripture...
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Componente Icona più robusto
+        // Helper per le icone
         const Icon = ({ name, className }) => {
             const [svg, setSvg] = useState('');
-
             useEffect(() => {
-                const timer = setInterval(() => {
+                const checkLucide = setInterval(() => {
                     if (window.lucide && window.lucide.icons[name]) {
-                        const iconSvg = window.lucide.icons[name].toSvg({ 
-                            class: className,
-                            'stroke-width': 2
-                        });
-                        setSvg(iconSvg);
-                        clearInterval(timer);
+                        setSvg(window.lucide.icons[name].toSvg({ class: className }));
+                        clearInterval(checkLucide);
                     }
-                }, 100);
-                return () => clearInterval(timer);
+                }, 50);
+                return () => clearInterval(checkLucide);
             }, [name, className]);
-
-            return svg ? <span className="inline-flex" dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={className + " bg-slate-700 rounded-full animate-pulse"}></span>;
+            return svg ? <span className="flex" dangerouslySetInnerHTML={{ __html: svg }} /> : <div className={className + " bg-white/5 rounded"}></div>;
         };
 
-        const RUNE_DATA = [
+        const RUNES = [
             {
                 id: 'varinor',
                 name: 'Varinor',
                 title: 'Runa della Forza',
                 icon: 'Zap',
-                iconColor: 'text-yellow-400',
-                baseEffect: 'Scegli fino a 2 unità: +1 ai tiri per Correre e Caricare.',
-                enhancedConditions: [
-                    { unit: 'ydriliqi', unitName: 'Se Ydriliqi è attiva', text: '+1 ai tiri per Ferire in mischia.' },
-                    { unit: 'oreali', unitName: 'Se Oreali è attiva', text: 'Può Tirare/Caricare dopo Ritirata.' }
-                ],
-                bgClass: 'bg-yellow-900/20',
-                borderColor: 'border-yellow-500/50'
+                color: 'text-amber-400',
+                effect: 'Scegli fino a 2 unità Lumineth: +1 ai tiri per Correre e Caricare.',
+                enhanced: [
+                    { req: 'ydriliqi', text: 'Se Ydriliqi è attiva: +1 ai tiri per Ferire in mischia.' },
+                    { req: 'oreali', text: 'Se Oreali è attiva: Possono Tirare/Caricare dopo Ritirata.' }
+                ]
             },
             {
                 id: 'entari',
                 name: 'Entari',
                 title: 'Runa della Guarigione',
                 icon: 'Shield',
-                iconColor: 'text-blue-400',
-                baseEffect: 'Fine fase: cura D3 ferite a un\'unità.',
-                enhancedConditions: [
-                    { unit: 'teclis', unitName: 'Teclis', text: 'Cura D6 invece di D3.' },
-                    { unit: 'calligrave', unitName: 'Calligrave', text: 'Cura un\'unità extra entro 12".' }
-                ],
-                bgClass: 'bg-blue-900/20',
-                borderColor: 'border-blue-500/50'
+                color: 'text-blue-400',
+                effect: 'Fine turno: scegli un\'unità Lumineth e cura D3 ferite.',
+                enhanced: [
+                    { req: 'varinor', text: 'Se Varinor è attiva: Gli EROI curano invece D6 ferite.' }
+                ]
             },
             {
                 id: 'ydriliqi',
                 name: 'Ydriliqi',
                 title: 'Runa del Fiume',
                 icon: 'Droplets',
-                iconColor: 'text-cyan-400',
-                baseEffect: 'Nemici entro 3": -1 ai tiri per Colpire.',
-                enhancedConditions: [
-                    { unit: 'sevireth', unitName: 'Sevireth', text: 'Muove di 3" extra dopo il tiro.' }
-                ],
-                bgClass: 'bg-cyan-900/20',
-                borderColor: 'border-cyan-500/50'
+                color: 'text-cyan-400',
+                effect: 'Nemici entro 3" dalle tue unità: -1 ai tiri per Colpire.',
+                enhanced: [
+                    { req: 'entari', text: 'Se Entari è attiva: -1 anche ai tiri per Ferire nemici.' }
+                ]
             },
             {
                 id: 'oreali',
                 name: 'Oreali',
                 title: 'Runa del Vento',
                 icon: 'Wind',
-                iconColor: 'text-emerald-400',
-                baseEffect: 'Attacchi a distanza contro di te: -1 al tiro.',
-                enhancedConditions: [
-                    { unit: 'avalenor', unitName: 'Avalenor', text: 'Nemici entro 12" non ricevono comandi.' }
-                ],
-                bgClass: 'bg-emerald-900/20',
-                borderColor: 'border-emerald-500/50'
+                color: 'text-emerald-400',
+                effect: 'Attacchi a distanza contro unità Lumineth: -1 al tiro per Colpire.',
+                enhanced: [
+                    { req: 'ydriliqi', text: 'Se Ydriliqi è attiva: +3" alla caratteristica Movimento.' }
+                ]
             }
         ];
 
-        const SPECIAL_UNITS = [
-            { id: 'teclis', name: 'Archmage Teclis', icon: 'Sparkles', color: 'bg-blue-600' },
-            { id: 'calligrave', name: 'Scinari Calligrave', icon: 'Scroll', color: 'bg-cyan-600' },
-            { id: 'sevireth', name: 'Sevireth', icon: 'Wind', color: 'bg-emerald-600' },
-            { id: 'avalenor', name: 'Avalenor', icon: 'Mountain', color: 'bg-amber-700' }
-        ];
-
         function App() {
-            const [selectedUnits, setSelectedUnits] = useState([]);
-            const [selectedRune, setSelectedRune] = useState(null);
-            const [confirmedRune, setConfirmedRune] = useState(null);
-            const [view, setView] = useState('setup');
+            const [activeRunes, setActiveRunes] = useState([]);
 
-            const toggleUnit = (id) => {
-                setSelectedUnits(prev => 
-                    prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
+            const toggleRune = (id) => {
+                setActiveRunes(prev => 
+                    prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
                 );
             };
 
             return (
-                <div className="min-h-screen text-slate-100 p-4 fade-in">
-                    <div className="max-w-4xl mx-auto pb-24">
-                        <header className="text-center mb-8 pt-4">
-                            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2 uppercase italic">
-                                Lumineth <span className="text-cyan-400 font-black">Rune Master</span>
-                            </h1>
-                            <div className="h-1 w-24 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mx-auto rounded-full"></div>
-                        </header>
-
-                        {/* Switcher */}
-                        <div className="flex p-1 bg-slate-800/80 backdrop-blur rounded-xl border border-white/10 mb-8 sticky top-4 z-40">
-                            <button 
-                                onClick={() => setView('setup')}
-                                className={`flex-1 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 ${view === 'setup' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400'}`}
-                            >
-                                <Icon name="User" className="w-4 h-4" /> EROI
-                            </button>
-                            <button 
-                                onClick={() => setView('runes')}
-                                className={`flex-1 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 ${view === 'runes' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400'}`}
-                            >
-                                <Icon name="Zap" className="w-4 h-4" /> RUNE
-                            </button>
-                        </div>
-
-                        {view === 'setup' ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                {SPECIAL_UNITS.map(unit => (
-                                    <div 
-                                        key={unit.id}
-                                        onClick={() => toggleUnit(unit.id)}
-                                        className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${selectedUnits.includes(unit.id) ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'}`}
-                                    >
-                                        <div className={`p-3 rounded-xl mr-4 ${selectedUnits.includes(unit.id) ? unit.color : 'bg-slate-800 border border-white/5'}`}>
-                                            <Icon name={unit.icon} className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-bold text-lg leading-tight">{unit.name}</div>
-                                            <div className="text-[10px] text-slate-500 uppercase font-black">Bonus Attivabile</div>
-                                        </div>
-                                        {selectedUnits.includes(unit.id) && <Icon name="CheckCircle2" className="w-6 h-6 text-cyan-400" />}
-                                    </div>
-                                ))}
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto">
+                        
+                        {/* Header con stile Manuale */}
+                        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+                            <div>
+                                <h2 className="text-cyan-500 font-bold tracking-[0.2em] text-xs uppercase mb-1">Battle Trait</h2>
+                                <h1 className="rune-font text-4xl font-black text-white italic">Depict Rune</h1>
+                            </div>
+                            <div className="flex gap-4">
                                 <button 
-                                    onClick={() => setView('runes')}
-                                    className="sm:col-span-2 mt-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:scale-[1.02] active:scale-[0.98] text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl transition-all"
+                                    onClick={() => setActiveRunes([])}
+                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-bold rounded-lg border border-white/5 transition-colors flex items-center gap-2"
                                 >
-                                    Vai alla selezione Rune →
+                                    <Icon name="RefreshCw" className="w-3 h-3" /> RESET ROUND
                                 </button>
                             </div>
-                        ) : (
-                            <div className="animate-in fade-in duration-500">
-                                {confirmedRune ? (
-                                    <div className="bg-slate-800 border-2 border-cyan-500 rounded-3xl p-8 text-center shadow-2xl relative">
-                                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
-                                        <div className="flex justify-center mb-4 scale-125">
-                                            <Icon name={confirmedRune.icon} className={`w-16 h-16 ${confirmedRune.iconColor}`} />
-                                        </div>
-                                        <h3 className="text-3xl font-black uppercase tracking-tight">{confirmedRune.name}</h3>
-                                        <p className="text-slate-400 italic mb-8">"{confirmedRune.title}"</p>
-                                        
-                                        <div className="space-y-4 max-w-lg mx-auto">
-                                            <div className="bg-slate-900/80 p-5 rounded-2xl border border-white/5 text-left">
-                                                <div className="text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Effetto Attivo</div>
-                                                <p className="text-lg leading-snug">{confirmedRune.baseEffect}</p>
+                        </header>
+
+                        {/* Griglia delle Rune - Una schermata unica */}
+                        <div className="scripture-grid">
+                            {RUNES.map(rune => {
+                                const isActive = activeRunes.includes(rune.id);
+                                return (
+                                    <div 
+                                        key={rune.id}
+                                        onClick={() => toggleRune(rune.id)}
+                                        className={`glass-panel rounded-2xl p-5 cursor-pointer transition-all duration-300 border-2 ${isActive ? 'active-rune-border' : 'border-transparent hover:border-white/10'}`}
+                                    >
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className={`rune-symbol-container ${isActive ? 'bg-cyan-500/20' : ''}`}>
+                                                <Icon name={rune.icon} className={`w-8 h-8 ${isActive ? rune.color : 'text-slate-600'}`} />
                                             </div>
-
-                                            {confirmedRune.enhancedConditions.some(c => selectedUnits.includes(c.unit) || selectedUnits.includes(confirmedRune.id)) && (
-                                                <div className="bg-amber-500/10 p-5 rounded-2xl border border-amber-500/30 text-left">
-                                                    <div className="text-[10px] font-black text-amber-500 uppercase mb-3 tracking-widest flex items-center gap-1">
-                                                        <Icon name="Star" className="w-3 h-3 fill-amber-500" /> Potenziamenti
-                                                    </div>
-                                                    <div className="space-y-3">
-                                                        {confirmedRune.enhancedConditions.map((c, i) => {
-                                                            const isA = selectedUnits.includes(c.unit);
-                                                            const isB = (c.unit === 'ydriliqi' && confirmedRune.id === 'ydriliqi') || (c.unit === 'oreali' && confirmedRune.id === 'oreali');
-                                                            if (isA || isB) {
-                                                                return (
-                                                                    <div key={i} className="flex gap-3 text-amber-50 px-2">
-                                                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_gold]"></div>
-                                                                        <p className="text-sm"><strong>{c.unitName}:</strong> {c.text}</p>
-                                                                    </div>
-                                                                );
-                                                            }
-                                                            return null;
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <div className="flex-1">
+                                                <h3 className="rune-font text-xl font-bold leading-none">{rune.name}</h3>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{rune.title}</p>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isActive ? 'bg-cyan-500 border-cyan-400' : 'border-slate-700'}`}>
+                                                {isActive && <Icon name="Check" className="w-4 h-4 text-white" />}
+                                            </div>
                                         </div>
 
-                                        <button 
-                                            onClick={() => setConfirmedRune(null)}
-                                            className="mt-10 text-slate-500 hover:text-red-400 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 mx-auto"
-                                        >
-                                            <Icon name="RefreshCcw" className="w-3 h-3" /> Cambia Runa
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {RUNE_DATA.map(rune => {
-                                            const isSelected = selectedRune?.id === rune.id;
-                                            return (
-                                                <div 
-                                                    key={rune.id}
-                                                    onClick={() => setSelectedRune(rune)}
-                                                    className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${isSelected ? `${rune.borderColor} ${rune.bgClass} scale-[1.02] shadow-xl shadow-cyan-900/20` : 'border-slate-800 bg-slate-900/40 hover:border-slate-600'}`}
-                                                >
-                                                    <div className="flex justify-between items-start mb-6">
-                                                        <div className="p-4 bg-slate-800 rounded-2xl border border-white/5 group-hover:bg-slate-700 transition-colors shadow-inner">
-                                                            <Icon name={rune.icon} className={`w-10 h-10 ${rune.iconColor}`} />
-                                                        </div>
-                                                        {isSelected && <Icon name="CheckCircle2" className="w-6 h-6 text-cyan-400" />}
-                                                    </div>
-                                                    <h3 className="text-2xl font-black uppercase">{rune.name}</h3>
-                                                    <p className="text-[10px] text-slate-500 mb-4 font-black uppercase tracking-widest italic">{rune.title}</p>
-                                                    <p className="text-sm text-slate-300 mb-6 leading-tight">{rune.baseEffect}</p>
-                                                    
-                                                    <div className="space-y-2 border-t border-white/5 pt-4">
-                                                        <div className="text-[9px] font-black text-slate-600 uppercase mb-2 tracking-tighter">Bonus condizionali:</div>
-                                                        {rune.enhancedConditions.map((c, i) => {
-                                                            const active = selectedUnits.includes(c.unit);
-                                                            return (
-                                                                <div key={i} className={`text-[10px] flex items-center gap-2 px-2 py-1 rounded-md transition-colors ${active ? 'bg-amber-500/20 text-amber-400 font-bold' : 'text-slate-600'}`}>
-                                                                    <Icon name="Star" className={`w-3 h-3 ${active ? 'fill-amber-400' : ''}`} />
-                                                                    <span>{c.unitName}</span>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Button Barra conferma */}
-                    {!confirmedRune && selectedRune && view === 'runes' && (
-                        <div className="fixed bottom-6 left-0 right-0 px-4 z-50 animate-in slide-in-from-bottom-6">
-                            <button 
-                                onClick={() => setConfirmedRune(selectedRune)}
-                                className="max-w-md mx-auto w-full bg-cyan-600 hover:bg-cyan-500 p-5 rounded-2xl shadow-[0_15px_40px_rgba(8,145,178,0.4)] flex items-center justify-between border border-cyan-400 transition-transform active:scale-95"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Icon name={selectedRune.icon} className="w-6 h-6 text-white" />
-                                    <span className="font-black text-white uppercase tracking-widest text-lg">ATTIVA {selectedRune.name}</span>
-                                </div>
-                                <Icon name="ChevronRight" className="w-6 h-6 text-white" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                                        <div className="space-y-4">
+                                            {/* Effetto Base */}
+                                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                                <p className={`text-sm leading-tight ${isActive ? 'text-slate-100' : 'text-slate-500'}`}>
+            
